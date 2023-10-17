@@ -76,5 +76,40 @@ class App {
     }
 };
 
+class Workout {
+    date = new Date();
+    id = (Date.now() + '').slice(-10);
+
+    constructor(coords, distance, duration) {
+        this.coords = coords;
+        this.distance = distance;
+        this.duration = duration;
+    }
+};
+
+class Running extends Workout {
+    constructor(coords, distance, duration, temp) {
+        super(coords, distance, duration);
+        this.temp = temp;
+        this.calculatePace();
+    }
+
+    calculatePace() {
+        this.pace = this.duration / this.distance;
+    }
+};
+
+class Cycling extends Workout {
+    constructor(coords, distance, duration, climb) {
+        super(coords, distance, duration);
+        this.climb = climb;
+        this.calculateSpeed();
+    }
+
+    calculateSpeed() {
+        this.speed = this.distance / this.duration / 60;
+    }
+};
+
 const app = new App();
 
