@@ -11,6 +11,7 @@ class App {
 
     #map;
     #mapEvent;
+    #workouts = [];
 
     constructor() {
         this._getPosition();
@@ -56,19 +57,67 @@ class App {
     }
 
     _newWorkout(e) {
+
+        function areNumbers(...numbers) {
+            numbers.every(num => Number.isFinite(num));
+        };
+
+        function arePositiveNumbers(...numbers) {
+            numbers.every(num => num > 0);
+            console.log(numbers.every(num => num > 0))
+        };
+
+
         e.preventDefault();
-        
+
+        const {lat, lng} = this.#mapEvent.latlng;
+        let workout;
+
+        //get data from form
+
+        const type = inputType.value,
+              distance = +inputDistance.value,
+              duration = +inputDuration.value;
+
+
+        //check training type
+
+        if (type === 'running') {
+            const temp = +inputTemp.value;
+            //valid data
+            if (areNumbers(distance, duration, temp) || arePositiveNumbers(distance, duration, temp)) return;
+
+            //create workout
+
+            workout = new Running([lat, lng], distance, duration, temp);
+        };
+
+        if (type === 'cycling') {
+            const climb = +inputClimb.value;
+            //valid data
+            if (areNumbers(distance, duration, climb) || arePositiveNumbers(distance, duration)) return;
+
+            workout = new Cycling([lat, lng], distance, duration, climb);
+        };
+
+        //add workout in workouts array
+
+        this.#workouts.push(workout);
+
         inputDuration.value = inputDistance.value = inputTemp.value = inputClimb.value = '';
     
-        const {lat, lng} = this.#mapEvent.latlng;
-    
-        L.marker([lat, lng])
+        //show workout on map
+       this.displayWorkout(workout);
+    }
+
+    displayWorkout(workout) {
+        L.marker(workout.coords)
         .addTo(this.#map)
         .bindPopup(
             L.popup({
                 autoClose: false,
                 closeOnClick: false,
-                className: 'running-popup',
+                className: `${workout.type}-popup`,
             })
             )
         .setPopupContent('Тренировка')
@@ -88,6 +137,9 @@ class Workout {
 };
 
 class Running extends Workout {
+
+    type = 'running';
+
     constructor(coords, distance, duration, temp) {
         super(coords, distance, duration);
         this.temp = temp;
@@ -100,6 +152,9 @@ class Running extends Workout {
 };
 
 class Cycling extends Workout {
+    
+    type = 'cycling';
+
     constructor(coords, distance, duration, climb) {
         super(coords, distance, duration);
         this.climb = climb;
